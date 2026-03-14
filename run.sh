@@ -8,30 +8,20 @@ SAMPLE_DATA_ARCHIVE_LOCATION=/tmp/sampledata.archive
 
 # Check local environment
 echo "> Checking local environment..."
-if [ ! -x "$(command -v docker)" ]; then
-    echo "> Docker is not installed! Please install Docker."
+if [ ! -x "$(command -v node)" ]; then
+    echo "> Node.js is not installed! Please install Node.js."
     exit 1
-elif ! docker compose version > /dev/null 2>&1; then
-    echo "> Docker Compose is not installed! Please install Docker Compose."
+elif [ ! -x "$(command -v mongod)" ] && [ ! -x "$(command -v mongosh)" ]; then
+    echo "> MongoDB does not appear to be installed! Please install MongoDB."
+    exit 1
+elif [ ! -x "$(command -v mongorestore)" ]; then
+    echo "> mongorestore is not installed! Please install mongodb-database-tools."
     exit 1
 elif [ ! -x "$(command -v curl)" ]; then
     echo "> cURL is not installed! Please install cURL."
     exit 1
-elif [ -z $MONGO_CONTAINER_NAME ]; then
-    echo "> MONGO_CONTAINER_NAME is not set! Please set MONGO_CONTAINER_NAME."
-    exit 1
-elif [ -z $APP_HOST_PORT ]; then
-    echo "> APP_HOST_PORT is not set! Please set APP_HOST_PORT."
-    exit 1
 fi
 echo "> Local environment is ready!"
-
-# Docker Compose up
-echo "> Running Docker Compose..."
-docker compose up --build --detach
-
-# Announce that FastLazyBee is up and running
-echo "> FastLazyBee is up and running! Please wait for initial data to be loaded into the database..."
 
 # Download the official MongoDB sample data archive (dump) from AWS S3
 if [ ! -f $SAMPLE_DATA_ARCHIVE_LOCATION ]; then
@@ -40,12 +30,19 @@ if [ ! -f $SAMPLE_DATA_ARCHIVE_LOCATION ]; then
     echo "> Sample data archive downloaded successfully!"
 fi
 
-# Copy the sample data archive to the MongoDB container
-docker cp $SAMPLE_DATA_ARCHIVE_LOCATION $MONGO_CONTAINER_NAME:/$SAMPLE_DATA_ARCHIVE_LOCATION
+# Restore the sample data archive into the local MongoDB instance
+echo "> Restoring sample data into MongoDB..."
+mongorestore --uri="mongodb://localhost:${MONGO_PORT}/" --archive=$SAMPLE_DATA_ARCHIVE_LOCATION --drop
 
-# Restore the sample data archive in the MongoDB container
-docker exec $MONGO_CONTAINER_NAME mongorestore --archive=/$SAMPLE_DATA_ARCHIVE_LOCATION --drop
-
-# Announce that the initial data has been loaded successfully and provide the URL to access the FastLazyBee app
 echo "> Initial data loaded successfully!"
-echo "> You can now run the FastLazyBee app by opening http://localhost:$APP_HOST_PORT/docs in your browser."
+
+# Install dependencies and start the app
+echo "> Installing dependencies..."
+npm ci
+
+echo "> Building the application..."
+npm run build
+
+echo "> Starting FastLazyBee..."
+echo "> You can access the API at http://localhost:${APP_PORT}/docs"
+npm start

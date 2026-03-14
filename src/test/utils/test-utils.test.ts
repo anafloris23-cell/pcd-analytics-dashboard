@@ -2,7 +2,7 @@ import type { FastifyMongodbOptions } from '@fastify/mongodb';
 import * as fs from 'fs';
 import { TEST } from '../../utils/constants/constants';
 import { downloadMongoArchive, genRandomPath } from '../../utils/testing/setup-mongo-common';
-import setupMongoTestcontainers from '../../utils/testing/setup-mongo-testcontainers';
+import setupMongoMemoryServer from '../../utils/testing/setup-mongo-memory-server';
 
 describe('downloadMongoArchive', () => {
   it(
@@ -37,11 +37,11 @@ describe('downloadMongoArchive', () => {
   );
 });
 
-describe('setupMongoTestcontainers', () => {
+describe('setupMongoMemoryServer', () => {
   it(
     'should return FastifyMongodbOptions',
     async () => {
-      const options: FastifyMongodbOptions = await setupMongoTestcontainers();
+      const options: FastifyMongodbOptions = await setupMongoMemoryServer();
       expect(options).not.toBeNull();
     },
     TEST.LONG_TIMEOUT
