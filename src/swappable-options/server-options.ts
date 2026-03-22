@@ -4,9 +4,9 @@ const serverOptions: FastifyServerOptions = {
   caseSensitive: false,
   logger: {
     level: 'debug',
-    transport: {
-      target: 'pino-pretty'
-    }
+    ...(process.env.NODE_ENV !== 'production' && {
+      transport: { target: 'pino-pretty' }
+    })
   },
   pluginTimeout: 100000
 };
