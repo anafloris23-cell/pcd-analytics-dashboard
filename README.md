@@ -1,63 +1,51 @@
-# Fast Lazy Bee
+# PCD Analytics Dashboard
 
-[![CI](https://github.com/cowuake/fast-lazy-bee/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/cowuake/fast-lazy-bee/actions/workflows/ci.yml)
-[![Coverage Status](https://coveralls.io/repos/github/cowuake/fast-lazy-bee/badge.svg?branch=main)](https://coveralls.io/github/cowuake/fast-lazy-bee?branch=main)
+Dashboard de analytics în timp real pentru un API REST de filme. Proiect pentru cursul **Programare în Cloud Distribuit** (PCD) — Proiect 1.
 
-Fast Lazy Bee is a toy *RESTful API* developed in TypeScript with the [Fastify](https://fastify.dev/) framework for educational purposes.
+## Cum funcționează
 
-## How to run locally
+Când un utilizator accesează un film prin `GET /movies/:id`, Service A răspunde imediat și publică un eveniment pe Pub/Sub. O Cloud Function procesează evenimentul asincron, îl scrie în BigQuery și notifică un WebSocket Gateway. Gateway-ul propagă update-ul către toate browserele conectate, care își actualizează dashboard-ul instant — fără refresh, fără polling.
 
-### Requirements
+## Arhitectură
 
-| Tool                          | Version        |
-| ----------------------------- | -------------- |
-| Node.js[^Node]                | 21.7.3         |
-| MongoDB[^Mongo]               | 8.x            |
-| mongodb-database-tools[^Tools]| (a recent one) |
+```
+  ┌──────────┐   HTTP     ┌────────────────┐   Pub/Sub       ┌──────────────────┐
+  │  Client  │ ─────────▶ │   Service A    │ ──────────────▶ │  Event Processor │
+  │   Web    │            │ (Fast Lazy Bee)│  resource-events│     (FaaS)       │
+  └──────────┘            │   Cloud Run    │                 └────────┬─────────┘
+                          │       +        │                          │
+                          │    MongoDB     │                   write  │  notify
+                          └────────────────┘                          ▼
+                                                              ┌──────────────┐
+                                                              │   BigQuery   │
+                                                              └──────┬───────┘
+                                                                     │ query
+                                                                     ▼
+  ┌──────────┐  WebSocket  ┌────────────────────┐
+  │Dashboard │◀────────────│ WebSocket Gateway  │
+  │ (HTML/JS)│             │    (Cloud Run)     │
+  └──────────┘             └────────────────────┘
+```
 
-[^Node]: Use [fnm](https://github.com/Schniz/fnm) or [nvm](https://github.com/nvm-sh/nvm) for installing the required version.
+## Componente
 
-[^Mongo]: Install MongoDB Community Edition for your platform. See [MongoDB installation docs](https://www.mongodb.com/docs/manual/installation/).
+- [`service-a/`](service-a/) — REST API de filme (Fastify + TypeScript + MongoDB), extins cu publicare de evenimente.
+- [`event-processor/`](event-processor/) — Cloud Function triggerată de Pub/Sub. Scrie în BigQuery cu idempotență.
+- [`websocket-gateway/`](websocket-gateway/) — Serviciu cu conexiuni WebSocket persistente. Broadcast către clienți.
+- [`dashboard/`](dashboard/) — Pagină web (HTML + JS vanilla) cu reconectare automată.
+- [`load-tests/`](load-tests/) — Teste de încărcare cu `autocannon`.
+- [`docs/`](docs/) — Raport științific.
 
-[^Tools]: Required for `mongorestore`. See [mongodb-database-tools](https://www.mongodb.com/docs/database-tools/installation/installation/).
+## Rulare
 
-### Quick start
-
-Make sure MongoDB is running locally on the default port (27017), then:
-
-#### GNU/Linux and macOS
-
-Give the run script execution permission with `chmod +x ./run.sh`, then launch it with
+Fiecare componentă are README propriu. Quick start pentru Service A:
 
 ```bash
-./run.sh
-```
-
-The script will download and restore the MongoDB sample dataset, build the app, and start it.
-Once running, access the API via SwaggerUI at [http://localhost:3000/docs](http://localhost:3000/docs).
-
-#### Windows
-
-Launch the run script with:
-
-```powershell
-.\run.ps1
-```
-
-### Development mode
-
-Install dependencies with `npm ci`, then run:
-
-```shell
+cd service-a
+npm ci
 npm run dev
 ```
 
-This starts the app with `tsx watch` for hot reloading. In development mode, the app connects to your local MongoDB instance using the connection string from `.env`.
+## Licență
 
-### Running tests
-
-Tests use [mongodb-memory-server](https://github.com/typegoose/mongodb-memory-server) to spin up an ephemeral MongoDB instance automatically — no external database required.
-
-```shell
-npm test
-```
+[MIT](LICENSE).

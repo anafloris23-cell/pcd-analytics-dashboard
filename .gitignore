@@ -1,4 +1,8 @@
 .env
-coverage
-dist
-node_modules
+.env.local
+**/node_modules
+**/dist
+**/coverage
+*.log
+.DS_Store
+.idea/
