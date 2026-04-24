@@ -1,4 +1,5 @@
 import type { FastifyMongoNestedObject, FastifyMongoObject } from '@fastify/mongodb';
+import type { ResourceEventPayload } from '../plugins/pubsub';
 import type { EnvSchemaType } from '../schemas/dotenv';
 import type { MovieCommentSchemaType, MovieSchemaType } from '../schemas/movies/data';
 import type { PaginatedSearchSchemaType, ResourceSchemaType } from '../schemas/movies/http';
@@ -26,5 +27,6 @@ declare module 'fastify' {
     config: EnvSchemaType;
     mongo: FastifyMongoObject & FastifyMongoNestedObject;
     dataStore: DataStore;
+    publishResourceEvent: (payload: ResourceEventPayload) => Promise<void>;
   }
 }

@@ -38,6 +38,14 @@ const routes: RouteOptions[] = [
       } else {
         reply.code(HttpStatusCodes.OK).send(movie);
       }
+
+      if (request.method === HttpMethods.GET) {
+        void this.publishResourceEvent({
+          resourceType: 'movie',
+          resourceId: params.movie_id,
+          action: 'view'
+        });
+      }
     }
   } as const,
   {
