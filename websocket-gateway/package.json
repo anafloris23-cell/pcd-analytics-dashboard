@@ -1,0 +1,19 @@
+{
+  "name": "pcd-websocket-gateway",
+  "version": "0.1.0",
+  "description": "WebSocket gateway pentru dashboard analytics. Primeste notificari de la event-processor si face broadcast catre clientii conectati.",
+  "main": "server.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@fastify/static": "^8.0.0",
+    "@fastify/websocket": "^11.0.0",
+    "@google-cloud/bigquery": "^7.9.0",
+    "fastify": "^5.7.0"
+  }
+}
