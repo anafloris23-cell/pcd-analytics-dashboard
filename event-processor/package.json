@@ -1,0 +1,17 @@
+{
+  "name": "pcd-event-processor",
+  "version": "0.1.0",
+  "description": "Cloud Function — consumes resource-events from Pub/Sub, writes analytics to BigQuery, notifies WebSocket Gateway.",
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "start": "functions-framework --target=processResourceEvent --signature-type=cloudevent",
+    "test:local": "functions-framework --target=processResourceEvent --signature-type=cloudevent --port=8080"
+  },
+  "dependencies": {
+    "@google-cloud/bigquery": "^7.9.0",
+    "@google-cloud/functions-framework": "^3.4.2"
+  }
+}
