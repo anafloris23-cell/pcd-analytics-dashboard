@@ -25,13 +25,13 @@ fastify.register(fastifyStatic, {
 });
 
 fastify.register(async function (instance) {
-  instance.get('/ws', { websocket: true }, async (connection, request) => {
-    clients.add(connection);
+  instance.get('/ws', { websocket: true }, async (socket, request) => {
+    clients.add(socket);
     instance.log.info(`client connected (total=${clients.size})`);
 
     try {
       const stats = await fetchTopMovies();
-      sendSafe(connection, {
+      sendSafe(socket, {
         type: 'snapshot',
         stats,
         connectedClients: clients.size,
@@ -39,15 +39,15 @@ fastify.register(async function (instance) {
       });
     } catch (err) {
       instance.log.error({ err }, 'initial snapshot failed');
-      sendSafe(connection, { type: 'error', message: 'snapshot failed' });
+      sendSafe(socket, { type: 'error', message: 'snapshot failed' });
     }
 
-    connection.socket.on('close', () => {
-      clients.delete(connection);
+    socket.on('close', () => {
+      clients.delete(socket);
       instance.log.info(`client disconnected (total=${clients.size})`);
     });
 
-    connection.socket.on('error', (err) => {
+    socket.on('error', (err) => {
       instance.log.warn({ err }, 'websocket error');
     });
   });
@@ -76,10 +76,10 @@ fastify.post('/internal/notify', async (request, reply) => {
   });
 
   let delivered = 0;
-  for (const client of clients) {
-    if (client.socket.readyState === 1) {
+  for (const socket of clients) {
+    if (socket.readyState === 1) {
       try {
-        client.socket.send(payload);
+        socket.send(payload);
         delivered++;
       } catch (err) {
         fastify.log.warn({ err }, 'broadcast send failed for one client');
@@ -119,10 +119,10 @@ async function fetchTopMovies() {
   }));
 }
 
-function sendSafe(connection, message) {
-  if (connection.socket.readyState !== 1) return;
+function sendSafe(socket, message) {
+  if (socket.readyState !== 1) return;
   try {
-    connection.socket.send(JSON.stringify(message));
+    socket.send(JSON.stringify(message));
   } catch (err) {
     fastify.log.warn({ err }, 'send failed');
   }

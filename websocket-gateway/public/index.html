@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PCD Analytics Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>PCD Analytics Dashboard</h1>
+    <div class="status-bar">
+      <span id="connection-status" class="status disconnected">disconnected</span>
+      <span class="metric">
+        Users <span id="user-count">0</span>
+      </span>
+      <span class="metric">
+        Window <span id="window-minutes">-</span> min
+      </span>
+      <span class="metric">
+        Last update <span id="last-update">-</span>
+      </span>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>Top resurse</h2>
+      <table id="top-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Resource ID</th>
+            <th>Views</th>
+          </tr>
+        </thead>
+        <tbody id="top-body">
+          <tr class="empty"><td colspan="3">Astept date...</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Activitate recenta</h2>
+      <ul id="activity-list">
+        <li class="empty">Niciun eveniment inca</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
